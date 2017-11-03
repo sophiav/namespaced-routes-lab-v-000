@@ -8,7 +8,13 @@ class SongsController < ApplicationController
         @songs = @artist.songs
       end
     else
-      @songs = Song.all
+      preference = Preference.first
+      if preference
+        sort_order = preference.first.song_sort_order
+      else
+        sort_order = 'ASC'
+      end
+      @songs = Song.order("title #{sort_order}").all
     end
   end
 
@@ -25,7 +31,12 @@ class SongsController < ApplicationController
   end
 
   def new
-    @song = Song.new
+    if Preference.first.allow_create_songs
+      @song = Song.new
+    else
+      flash[:alert] = "Preference settings do not allow the creation of new songs"
+      redirect_to songs_path
+    end
   end
 
   def create
